@@ -16,7 +16,7 @@
             <!-- Opções do select são preenchidas dinamicamente no JavaScript -->
         </select>
 
-        <label for="quantidade">Quantidade:</label>
+        <label for="quantidade">Qtd:</label>
         <input type="number" id="quantidade">
 
         <button type="submit">Adicionar Produto</button>
@@ -25,39 +25,16 @@
     <h2>Produtos Selecionados</h2>
     <ul id="produtos-selecionados"></ul>
 
+    <p id="valor-total">O valor total da sua cesta é: R$ 0,00</p>
+
+    <button id="enviar-mensagem">Enviar mensagem para o WhatsApp</button>
+
     <script>
         // Função para formatar valor em real brasileiro
         function formatarReal(valor) {
             return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
         }
 
-        // Função para adicionar produtos à lista de seleção
-        function adicionarProdutosSelecao(produtos) {
-            const selectProduto = document.getElementById("produto");
-            for (let i = 0; i < produtos.length; i++) {
-                const option = document.createElement("option");
-                option.value = produtos[i].nome;
-                option.text = produtos[i].nome;
-                selectProduto.appendChild(option);
-            }
-        }
-
-        // Função para adicionar produto selecionado à lista
-        function adicionarProdutoSelecionado() {
-            event.preventDefault();
-
-            const selectProduto = document.getElementById("produto");
-            const quantidade = parseInt(document.getElementById("quantidade").value);
-            const produtoSelecionado = selectProduto.options[selectProduto.selectedIndex].text;
-
-            const listaProdutosSelecionados = document.getElementById("produtos-selecionados");
-            const li = document.createElement("li");
-            const valorTotal = quantidade * produtos.find(p => p.nome === produtoSelecionado).valor;
-            li.textContent = `Nome: ${produtoSelecionado}, Quantidade: ${quantidade}, Valor Total: ${formatarReal(valorTotal)}`;
-            listaProdutosSelecionados.appendChild(li);
-        }
-
-        // Dados dos produtos (substitua com o processamento do arquivo Excel)
         const produtos = [
             { nome: "Manteiga", valor: 1.70 },
             { nome: "Geleia", valor: 1.50 },
@@ -70,16 +47,87 @@
         const listaProdutos = document.getElementById("lista-produtos");
         produtos.forEach(produto => {
             const li = document.createElement("li");
-            li.textContent = `Nome: ${produto.nome}, Valor: ${formatarReal(produto.valor)}`;
+            li.textContent = `${produto.nome}, Valor: ${formatarReal(produto.valor)}`;
             listaProdutos.appendChild(li);
         });
 
         // Adicionar produtos à lista de seleção
-        adicionarProdutosSelecao(produtos);
+        const selectProduto = document.getElementById("produto");
+        produtos.forEach(produto => {
+            const option = document.createElement("option");
+            option.value = produto.nome;
+            option.text = produto.nome;
+            selectProduto.appendChild(option);
+        });
+
+        // Variável para armazenar o valor total da cesta
+        let valorTotalCesta = 0;
+
+        // Função para adicionar produto selecionado à lista
+        function adicionarProdutoSelecionado() {
+            event.preventDefault();
+
+            const quantidade = parseInt(document.getElementById("quantidade").value);
+            const produtoSelecionado = selectProduto.options[selectProduto.selectedIndex].text;
+
+            const listaProdutosSelecionados = document.getElementById("produtos-selecionados");
+            const li = document.createElement("li");
+            const valorProduto = produtos.find(p => p.nome === produtoSelecionado).valor;
+            const valorTotalProduto = quantidade * valorProduto;
+            li.textContent = `${produtoSelecionado}, Qtd: ${quantidade}, Valor Total: ${formatarReal(valorTotalProduto)}`;
+            listaProdutosSelecionados.appendChild(li);
+
+            // Atualizar o valor total da cesta
+            valorTotalCesta += valorTotalProduto;
+
+            calcularValorTotal();
+        }
+
+        // Função para calcular o valor total da cesta
+        function calcularValorTotal() {
+            const listaProdutosSelecionados = document.getElementById("produtos-selecionados");
+            const produtosSelecionados = listaProdutosSelecionados.getElementsByTagName("li");
+
+            let valorTotal = 0;
+            for (let i = 0; i < produtosSelecionados.length; i++) {
+                const valorTexto = produtosSelecionados[i].textContent;
+                const regexValor = /Valor Total: ([\d.,]+)/;
+                const valorProduto = parseFloat(regexValor.exec(valorTexto)[1].replace(",", "."));
+                valorTotal += valorProduto;
+            }
+
+            const valorTotalElement = document.getElementById("valor-total");
+            valorTotalElement.textContent = `O valor total da sua cesta é: ${formatarReal(valorTotalCesta)}`;
+        }
+
+        // Função para enviar a mensagem para o WhatsApp
+        function enviarMensagemWhatsApp() {
+            const listaProdutosSelecionados = document.getElementById("produtos-selecionados");
+            const produtosSelecionados = listaProdutosSelecionados.getElementsByTagName("li");
+
+            let mensagem = "Bom dia, gostaria de fazer um pedido de cesta com os seguintes produtos:\n";
+
+            for (let i = 0; i < produtosSelecionados.length; i++) {
+                mensagem += produtosSelecionados[i].textContent + "\n";
+            }
+
+            mensagem += `Valor total da cesta: ${formatarReal(valorTotalCesta)}`;
+
+            const numeroWhatsApp = "3195055214";
+            const mensagemCodificada = encodeURIComponent(mensagem);
+            const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensagemCodificada}`;
+
+            // Abre uma nova janela ou redireciona para a URL do WhatsApp
+            window.open(urlWhatsApp);
+        }
 
         // Adicionar evento de submit ao formulário
         const formulario = document.getElementById("formulario");
         formulario.addEventListener("submit", adicionarProdutoSelecionado);
+
+        // Adicionar evento de clique ao botão de enviar mensagem
+        const enviarMensagemButton = document.getElementById("enviar-mensagem");
+        enviarMensagemButton.addEventListener("click", enviarMensagemWhatsApp);
     </script>
 </body>
 </html>
