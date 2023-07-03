@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Produtos</title>
+</head>
+<body>
+    <h1>Lista de Produtos</h1>
+    <h2>Tabela de Produtos</h2>
+    <ul id="lista-produtos"></ul>
+
+    <h2>Formulário</h2>
+    <form id="formulario">
+        <label for="produto">Produto:</label>
+        <select id="produto">
+            <!-- Opções do select são preenchidas dinamicamente no JavaScript -->
+        </select>
+
+        <label for="quantidade">Quantidade:</label>
+        <input type="number" id="quantidade">
+
+        <button type="submit">Adicionar Produto</button>
+    </form>
+
+    <h2>Produtos Selecionados</h2>
+    <ul id="produtos-selecionados"></ul>
+
+    <script>
+        // Função para formatar valor em real brasileiro
+        function formatarReal(valor) {
+            return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        // Função para adicionar produtos à lista de seleção
+        function adicionarProdutosSelecao(produtos) {
+            const selectProduto = document.getElementById("produto");
+            for (let i = 0; i < produtos.length; i++) {
+                const option = document.createElement("option");
+                option.value = produtos[i].nome;
+                option.text = produtos[i].nome;
+                selectProduto.appendChild(option);
+            }
+        }
+
+        // Função para adicionar produto selecionado à lista
+        function adicionarProdutoSelecionado() {
+            event.preventDefault();
+
+            const selectProduto = document.getElementById("produto");
+            const quantidade = parseInt(document.getElementById("quantidade").value);
+            const produtoSelecionado = selectProduto.options[selectProduto.selectedIndex].text;
+
+            const listaProdutosSelecionados = document.getElementById("produtos-selecionados");
+            const li = document.createElement("li");
+            const valorTotal = quantidade * produtos.find(p => p.nome === produtoSelecionado).valor;
+            li.textContent = `Nome: ${produtoSelecionado}, Quantidade: ${quantidade}, Valor Total: ${formatarReal(valorTotal)}`;
+            listaProdutosSelecionados.appendChild(li);
+        }
+
+        // Dados dos produtos (substitua com o processamento do arquivo Excel)
+        const produtos = [
+            { nome: "Manteiga", valor: 1.70 },
+            { nome: "Geleia", valor: 1.50 },
+            { nome: "Pão de Mel", valor: 1.50 },
+            { nome: "Bolinho", valor: 2.50 },
+            { nome: "Torrada", valor: 1.70 },
+        ];
+
+        // Preencher a tabela de produtos
+        const listaProdutos = document.getElementById("lista-produtos");
+        produtos.forEach(produto => {
+            const li = document.createElement("li");
+            li.textContent = `Nome: ${produto.nome}, Valor: ${formatarReal(produto.valor)}`;
+            listaProdutos.appendChild(li);
+        });
+
+        // Adicionar produtos à lista de seleção
+        adicionarProdutosSelecao(produtos);
+
+        // Adicionar evento de submit ao formulário
+        const formulario = document.getElementById("formulario");
+        formulario.addEventListener("submit", adicionarProdutoSelecionado);
+    </script>
+</body>
+</html>
